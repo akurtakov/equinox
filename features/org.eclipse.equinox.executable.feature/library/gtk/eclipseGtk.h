@@ -23,6 +23,7 @@ struct GTK_PTRS {
 	void		(*gtk_container_add)		(GtkContainer*, GtkWidget*);
 	gint		(*gtk_dialog_run)			(GtkDialog *);
 	GtkWidget*	(*gtk_image_new_from_pixbuf)(GdkPixbuf*);
+	gboolean    (*gtk_init_check)           (); //GTK4 variant of the function has no params
 	gboolean	(*gtk_init_with_args)		(int*, char***, const char *, void *, const char *, GError **);
 	GtkWidget*	(*gtk_message_dialog_new)	(GtkWindow*, GtkDialogFlags, GtkMessageType, GtkButtonsType, const gchar*, ...);
 	void		(*gtk_widget_destroy)		(GtkWidget*);

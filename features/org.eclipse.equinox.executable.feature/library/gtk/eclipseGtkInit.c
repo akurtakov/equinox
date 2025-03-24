@@ -36,6 +36,7 @@ static FN_TABLE gtkFunctions[] = {
 	FN_TABLE_ENTRY(gtk_container_add, 1),
 	FN_TABLE_ENTRY(gtk_dialog_run, 1),
 	FN_TABLE_ENTRY(gtk_image_new_from_pixbuf, 1),
+	FN_TABLE_ENTRY(gtk_init_check, 1),
 	FN_TABLE_ENTRY(gtk_init_with_args, 1),
 	FN_TABLE_ENTRY(gtk_message_dialog_new, 1),
 	FN_TABLE_ENTRY(gtk_widget_destroy, 1),
@@ -126,10 +127,16 @@ int loadGtk() {
 
 	void *gioLib = NULL, *glibLib = NULL, *gdkLib = NULL, *gtkLib = NULL, *objLib = NULL, *pixLib = NULL;
 	
-	gdkLib = dlopen(GDK3_LIB, DLFLAGS);
-	gtkLib = dlopen(GTK3_LIB, DLFLAGS);
+	char *gtk4 = getenv("SWT_GTK4");
+	if (gtk4 == NULL || strcmp(gtk4,"1") == 0) {
+		gdkLib = dlopen(GDK4_LIB, DLFLAGS);
+		gtkLib = dlopen(GTK4_LIB, DLFLAGS);
+	}
 
 	if (!gtkLib || !gdkLib) {
+		gdkLib = dlopen(GDK3_LIB, DLFLAGS);
+		gtkLib = dlopen(GTK3_LIB, DLFLAGS);
+		setenv("SWT_GTK4","0",1);
 		const char * (*func)(int, int, int);
 		dlerror();
 
@@ -141,7 +148,7 @@ int loadGtk() {
 				int gtkMajorVersion, gtkMinorVersion, gtkMicroVersion;
 				void *gtkMajorPtr, *gtkMinorPtr, *gtkMicroPtr;
 
-				/* this code is applicable for GTK+ 2 only*/
+				/* this code is applicable for GTK+ 3 only*/
 				dlerror();
 				gtkMajorPtr = dlsym(gtkLib, "gtk_major_version");
 				if ((dlerror() != NULL) || (gtkMajorPtr == NULL)) return -1;
@@ -175,6 +182,11 @@ int loadGtk() {
 					if (!gtk.gtk_init_with_args(0, NULL, NULL, NULL, NULL, &error)) {
 						printf("%s", gtkInitFail);
 						exit (1);
+					}
+				} else if (gtk.gtk_init_check) {
+					if (!gtk.gtk_init_check()) {
+						printf("%s", gtkInitFail);
+						exit(1);
 					}
 				}
 				dialog = gtk.gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
